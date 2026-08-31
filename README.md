@@ -1,50 +1,51 @@
-# EazyCat AWS Production Infrastructure
+# MerideanCorp Enterprise Cloud Platform
 
-## Overview
+I built this to answer one question I kept getting asked in interviews: "have you built anything that actually looks like production?" So I made up a client — a fintech doing small-business lending — and gave myself their real problem: one on-prem server, no redundancy, shared admin logins, zero visibility into cost. Then I migrated them to AWS the way I'd actually do it at a job.
 
-Production-style AWS infrastructure for a web application, designed for **high availability, security, scalability, and cost control**.
+Built manually through the Console first, on purpose — I wanted to understand every piece before I let Terraform hide it from me. That's next.
 
-## Architecture
+## What it looks like
 
-```text
+```
 Internet
-   ↓
-Application Load Balancer
-   ↓
-Private EC2
-   ↓
-Private RDS
-   ↓
-S3
+   │
+   ▼
+[ ALB + WAF ]  ──spans 3 AZs──
+   │
+   ▼
+[ Auto Scaling Group ]  (private subnets, no public IPs)
+   │
+   ▼
+[ RDS PostgreSQL ]  (fully isolated — zero internet route, in or out)
 ```
 
-Deployed across **2 Availability Zones** using a segmented VPC.
+*(Full diagram: [`docs/architecture.svg`](docs/architecture.svg))*
 
-## Network
+## What I'd want a reviewer to notice
 
-* VPC: `10.0.0.0/16`
-* 2 Public subnets
-* 2 Private App subnets
-* 2 Private DB subnets
-* Internet Gateway
-* Separate route tables by tier
+- **No SSH, anywhere.** Access is IAM + Session Manager only. No keys to leak, no port 22 open.
+- **The data tier can't reach the internet even if it wanted to.** Not a firewall rule — the route table itself has no path out. Isolation you can't misconfigure your way around.
+- **Nothing's hardcoded.** DB credentials live in Secrets Manager, pulled at runtime through a scoped IAM role.
+- **I actually broke it on purpose.** Killed a running instance mid-session and recorded the Auto Scaling Group replacing it with zero downtime. Writeup: `docs/failure-test.md`.
 
-## AWS Services
+## Stack
 
-**VPC · EC2 · ALB · Auto Scaling · RDS · S3 · IAM · CloudWatch · CloudTrail · Route 53**
+VPC (3 AZ, 3-tier) · EC2 + ASG · ALB · RDS PostgreSQL · IAM · Secrets Manager · CloudWatch · WAF · Route 53
 
-## Key Engineering Decisions
+## The honest parts
 
-* **2 AZs** → improve availability
-* **Private EC2/RDS** → reduce public exposure
-* **ALB** → distribute application traffic
-* **Auto Scaling** → handle changing demand
-* **IAM Roles** → avoid hard-coded credentials
-* **Monitoring** → detect performance and operational issues
-* **Cost controls** → minimize unnecessary AWS spend
+I'm not going to pretend this is flawless — here's what's cut for scope, and what I'd change first in a real production account:
 
-## Status
+| What | Why it's this way | What changes in prod |
+|---|---|---|
+| HTTP only | No real domain to get a TLS cert for | ACM cert + HTTPS |
+| RDS is Single-AZ | Account hit a quota wall on Multi-AZ | Multi-AZ, one settings change |
+| No DNS failover | Same — needs a real domain | Route 53 failover policy |
+| Built by hand, no Terraform yet | Wanted the concepts solid first | Rebuilding as IaC — next phase |
 
-🟡 **In Progress** — Network foundation completed.
+## Read more
 
-Detailed technical decisions, deployment steps, testing, and troubleshooting are documented in `/docs`.
+- [`docs/requirements.md`](docs/requirements.md) — the brief I wrote for myself
+- [`adr/`](adr/) — every real decision, with what I rejected and why
+- [`docs/network-verification.md`](docs/network-verification.md) — proof it actually works
+- [`docs/failure-test.md`](docs/failure-test.md) — proof it actually recovers
