@@ -10,7 +10,6 @@
 | RDS (Single-AZ, `db.t3.micro`) | Free-tier eligible | $0 within free-tier hours |
 | EC2 (2× t3.micro) | Free-tier eligible (750 hrs/mo combined) | $0 within free-tier hours |
 
-*[Screenshot: Cost Explorer breakdown by Tier tag](../screenshots/cost-explorer.png)*
 
 ## Cost Governance Applied
 
