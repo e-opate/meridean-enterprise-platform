@@ -1,8 +1,8 @@
 # MerideanCorp Enterprise Cloud Platform
 
-I built this to answer one question I kept getting asked in interviews: "have you built anything that actually looks like production?" So I made up a client — a fintech doing small-business lending — and gave myself their real problem: one on-prem server, no redundancy, shared admin logins, zero visibility into cost. Then I migrated them to AWS the way I'd actually do it at a job.
+I built this as a personal project to practice enterprise AWS architecture. So I made up a client — a fintech doing small-business lending — and gave myself their real problem: one on-prem server, no redundancy, shared admin logins, zero visibility into cost, onto a properly secured AWS environment.
 
-Built manually through the Console first, on purpose — I wanted to understand every piece before I let Terraform hide it from me. That's next.
+Built manually through the Console first, on purpose — I wanted to understand every piece before Terraform.
 
 ## What it looks like
 

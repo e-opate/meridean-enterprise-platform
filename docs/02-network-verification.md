@@ -2,7 +2,6 @@
 
 This document walks through the evidence proving the Phase 1 network design actually works as designed, not just as configured.
 
-Screenshots referenced below live in `../screenshots/` — see `screenshots/checklist.md` for the full capture list.
 
 ## 1. Private Subnet, No Public IP, IAM-Based Access
 
